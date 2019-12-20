@@ -31,7 +31,7 @@ class TravelMap extends React.Component {
     
     //call the the tracker database to get the current location
     fetchCurrentLocation = () =>{
-        fetch('http://tdh-scripts/gps-tracker/?request=latest')
+        fetch('http://tdh-scripts.herokuapp.com/gps-tracker/?request=latest')
             .then(response => response.json())
             .then(cricketLoc => this.setState({cricketLoc}));   
         console.log('location updated');
