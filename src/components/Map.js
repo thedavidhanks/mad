@@ -54,7 +54,7 @@ class TravelMap extends React.Component {
     render() {
 //        const overstyle = {
 //            width: '100%',
-//            height: '800px'
+//            height: {this.state.height}
 //        };
         const position = [this.state.lat, this.state.lng];
         return (
