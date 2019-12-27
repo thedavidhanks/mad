@@ -17,31 +17,116 @@ class TravelMap extends React.Component {
           cricketLoc: null,
           lat: 29.7,
           lng: -95.37,
-          zoom: 8,
-          height: 800
+          zoom: 6,
+          height: 800,
+          centered: false
       };  
     }
     
     //update's map div height based on window size.
     updateDimensions() {
-        //note: "-40" accounts for the menubar at the top
-        const height = window.innerWidth >= 992 ? window.innerHeight -40 : 400;
+        //note: "-60" accounts for the menubar at the top
+        const height = window.innerHeight - 60;
         this.setState({ height: height });
     }
     
-    //call the the tracker database to get the current location
-    fetchCurrentLocation = () =>{
-        fetch('http://tdh-scripts.herokuapp.com/gps-tracker/?request=latest')
-            .then(response => response.json())
-            .then(cricketLoc => this.setState({cricketLoc}));   
-        console.log('location updated');
+    centerOnCricket = () =>{
+        if(this.state.cricketLoc && !this.state.centered){
+            this.setState({
+                lat: this.state.cricketLoc.lat,
+                long: this.state.cricketLoc.long,
+                centered: true
+            });
+        }
     }
     
-    componentDidMount(){
+    fetchStationFromCoord = () =>{
+        if(this.state.cricketLoc){
+            var cricketLoc = this.state.cricketLoc;
+            fetch(`https://api.weather.com/v3/location/near?geocode=${cricketLoc.lat},${cricketLoc.long}&product=pws&format=json&apiKey=7bbc7ab12048429fbc7ab12048229f5a`)
+                .then(response => response.json())
+                .then( (stationJSON) => {
+                    console.log(`The nearest weather stations are ${stationJSON.location.stationId}`);
+                    this.setState((prevState) => ({
+                        cricketLoc: {
+                            ...prevState.cricketLoc,
+                            stationID: stationJSON.location.stationId[0]
+                        }
+                    }));
+                })
+                .catch((e) => console.log("Could not get station id from weather.com. \n"+e));
+        }
+    }
+    
+    fetchWeatherFromStation = () =>{
+       if(this.state.cricketLoc.stationID){
+            var stationID = this.state.cricketLoc.stationID;
+            fetch(`https://api.weather.com/v2/pws/observations/current?stationId=${stationID}&format=json&units=e&apiKey=7bbc7ab12048429fbc7ab12048229f5a`)
+                .then(response => response.json())
+                .then( (weatherJSON) => {
+                    this.setState((prevState) => ({
+                        cricketLoc: {
+                            ...prevState.cricketLoc,
+                            outsideTempF: weatherJSON.observations[0].imperial.temp,
+                            elevation: weatherJSON.observations[0].imperial.elev,
+                        }
+                    }));
+                })
+                .catch((e) => console.log("Could not get weather from station id from weather.com. \n"+e));
+        }
+    }
+    
+    fetchLocationfromCoord = () =>{
+        if(this.state.cricketLoc){
+            var cricketLoc = this.state.cricketLoc;
+            fetch(`https://api.weather.com/v3/location/point?geocode=${cricketLoc.lat},${cricketLoc.long}&language=en-US&format=json&apiKey=7bbc7ab12048429fbc7ab12048229f5a`)
+                .then(response => response.json())
+                .then( (locJSON) => {
+                    console.log(`You're in ${locJSON.location.city},${locJSON.location.adminDistrict}`);
+                    this.setState((prevState) => ({
+                        cricketLoc: {
+                            ...prevState.cricketLoc,
+                            city: locJSON.location.city,
+                            state: locJSON.location.adminDistrict
+                        }
+                    }));
+                })
+                .then(this.fetchStationFromCoord)
+                .then(this.fetchWeatherFromStation)
+                .catch((e) => console.log("Could not get location from weather.com. \n"+e));
+        }
+    }
+     
+    //call the the tracker database to get the current location
+    // get city location & weather ref https://docs.google.com/document/d/1xSpijI9MgWWfHaFX4wo_tB0GjtNeHZqGyp3XVOaAPl4/edit
+    fetchCurrentLocation = () =>{
+        fetch('http://tdh-scripts.herokuapp.com/gps-tracker/?request=latest')
+        //fetch('http://tdh-scripts/gps-tracker/?request=latest')
+            .then(response => response.json())
+            .then( (newLoc) => {
+                this.setState((prevState) => ({
+                cricketLoc: {
+                    ...prevState.cricketLoc,
+                    lat: newLoc.lat,
+                    long: newLoc.long
+                }    
+                }));
+            })
+            .then( () => console.log('location updated'))
+            .then(this.centerOnCricket)
+            .catch((e) => console.log("Could not get tracker location. \n"+e));
+    }
+
+    componentDidMount() {
         let refreshLocSec = 15; //specifies the seconds between calls to fetch the current cricket location.
-        console.log('Refreshing location every '+refreshLocSec+' seconds');
+        console.log('Refreshing cricket location every '+refreshLocSec+' seconds');
         this.fetchCurrentLocation();
         this.timer = setInterval(()=>this.fetchCurrentLocation(), refreshLocSec*1000);
+        
+        let refreshWeatherSec = 60; //specifies the seconds between calls to fetch the city/weather @ cricket location.
+        console.log('Refreshing city/weather every '+refreshWeatherSec+' seconds');
+        this.fetchLocationfromCoord();
+        this.timer_weather = setInterval(()=>this.fetchLocationfromCoord(), refreshWeatherSec*1000);
         
         //check the screen size.
         this.updateDimensions();
@@ -50,6 +135,9 @@ class TravelMap extends React.Component {
     
     componentWillUnmount() {
         window.removeEventListener("resize", this.updateDimensions.bind(this));
+        clearInterval(this.timer);
+        clearInterval(this.timer_weather);
+        
     }
     render() {
 //        const overstyle = {
