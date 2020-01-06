@@ -37,6 +37,9 @@
   }
 }
 
+.border{
+    border: 1px solid;
+}
 .home {
     margin: 30px 30px ;
 }
