@@ -7,7 +7,6 @@ const PostList = props =>{
     
     //cycle through each element of the array.
     const postlist = props.posts.map((post, index) => {
-        //console.log(marker);
         
         //const dateAdded = (marker.addedOn) ? marker.addedOn.toDate() : null ;
         
@@ -16,7 +15,7 @@ const PostList = props =>{
                     url={"https://www.instagram.com/p/".concat(post.url,"/")}
                     maxWidth={800}
                     hideCaption={false}
-                    key={post.key}
+                    key={post.id}
             />
         );}
     );
