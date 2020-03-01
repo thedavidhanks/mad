@@ -5,8 +5,8 @@
     shadowUrl: require('./toon_cricket_shadow.png'),
     iconSize: [95, 44],
     shadowSize: [95, 44],
-    iconAnchor: [47, 44],
-    shadowAnchor: [47, 44],
+    iconAnchor: [65, 44],
+    shadowAnchor: [65, 44],
     popupAnchor: [-50, -35],
     tooltipAnchor: [16, 14]
 });
