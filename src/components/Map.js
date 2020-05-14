@@ -7,7 +7,12 @@ import 'leaflet/dist/leaflet.css';
 //Marker will show where the cricket currently is.
 const CricketMarker = props =>{
     var coords = [props.lat,props.long];
-    return <Marker icon={iconCricket} position={coords}><Popup><p>{props.time}</p></Popup></Marker>;
+    var cityState = props.city+", "+props.state;
+    var locMsg = props.city ? <p>We're in {cityState}</p> : null;
+    //const LocMsg = () => (props.city ? <p>We're in {cityState}</p> : null);
+    var tempMsg = props.temp ? <p>{props.temp}°F</p> : null;
+    var lastSeen = <p>last seen: {props.time}</p>;
+    return <Marker icon={iconCricket} position={coords}><Popup>{locMsg}{tempMsg}{lastSeen}</Popup></Marker>;
 };
 
 class TravelMap extends React.Component {
@@ -34,7 +39,7 @@ class TravelMap extends React.Component {
         if(this.state.cricketLoc && !this.state.centered){
             this.setState({
                 lat: this.state.cricketLoc.lat,
-                long: this.state.cricketLoc.long,
+                lng: this.state.cricketLoc.long,
                 centered: true
             });
         }
@@ -68,7 +73,7 @@ class TravelMap extends React.Component {
                         cricketLoc: {
                             ...prevState.cricketLoc,
                             outsideTempF: weatherJSON.observations[0].imperial.temp,
-                            elevation: weatherJSON.observations[0].imperial.elev,
+                            elevation: weatherJSON.observations[0].imperial.elev
                         }
                     }));
                 })
@@ -101,20 +106,29 @@ class TravelMap extends React.Component {
     // get city location & weather ref https://docs.google.com/document/d/1xSpijI9MgWWfHaFX4wo_tB0GjtNeHZqGyp3XVOaAPl4/edit
     fetchCurrentLocation = () =>{
         fetch('http://tdh-scripts.herokuapp.com/gps-tracker/?request=latest')
-        //fetch('http://tdh-scripts/gps-tracker/?request=latest')
             .then(response => response.json())
             .then( (newLoc) => {
-                this.setState((prevState) => ({
-                cricketLoc: {
-                    ...prevState.cricketLoc,
-                    lat: newLoc.lat,
-                    long: newLoc.long
-                }    
-                }));
+                //Only update the location state if the date has changed.
+                if(this.state.cricketLoc && (newLoc.date === this.state.cricketLoc.date)){
+                    console.log("No update needed");
+                }else{
+                    this.updateCricketLocation(newLoc);
+                } 
             })
-            .then( () => console.log('location updated'))
             .then(this.centerOnCricket)
             .catch((e) => console.log("Could not get tracker location. \n"+e));
+    }
+    
+    updateCricketLocation = (newLoc) => {
+        this.setState((prevState) => ({
+            cricketLoc: {
+                ...prevState.cricketLoc,
+                lat: newLoc.lat,
+                long: newLoc.long,
+                date: newLoc.date
+            },
+            centered: false
+            }));
     }
 
     componentDidMount() {
@@ -144,7 +158,8 @@ class TravelMap extends React.Component {
 //            width: '100%',
 //            height: {this.state.height}
 //        };
-        const position = [this.state.lat, this.state.lng];
+        let position = [this.state.lat, this.state.lng];
+        let cricket = this.state.cricketLoc;
         return (
                 <Map center={position} zoom={this.state.zoom} style={{ height: this.state.height, width: '100%' }}>
                     <TileLayer
@@ -152,7 +167,14 @@ class TravelMap extends React.Component {
                       url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                     />
                     { (this.state.cricketLoc) ? 
-                        <CricketMarker lat={this.state.cricketLoc.lat} long={this.state.cricketLoc.long} time={this.state.cricketLoc.date}/> 
+                        <CricketMarker 
+                            lat={cricket.lat} 
+                            long={cricket.long} 
+                            time={cricket.date} 
+                            temp={cricket.outsideTempF} 
+                            city={cricket.city} 
+                            state={cricket.state}
+                        /> 
                         : 
                         null
                     }
