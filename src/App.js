@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Route } from "react-router-dom";
 import MenuBar from './components/MenuBar.js'
 import TravelMap from './components/Map.js';
 import Home from './components/Home.js';
+import MadBlogger from './components/Blog/MadBlogger.js';
 
 import './App.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -15,6 +16,7 @@ function App() {
             <Route path='/' exact component={Home} />
             <Route path='/whereintheworld' component={TravelMap} />
             <Route path='/wherearethey' component={TravelMap} />
+            <Route path='/blog' component={MadBlogger} />
         </div>
     </Router>
   );

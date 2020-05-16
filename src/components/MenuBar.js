@@ -11,6 +11,7 @@ const MenuBar = () =>{
             <Navbar.Brand as={Link} to="/">Margee and Dave</Navbar.Brand>
             <Nav className="mr-auto">
               <Nav.Link as={Link} to="/whereintheworld">Map</Nav.Link>
+              <Nav.Link as={Link} to="/blog">Blog</Nav.Link>
             </Nav>
         </Navbar>
     );

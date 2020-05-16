@@ -10,6 +10,7 @@
     "axios": "^0.19.2",
     "bootstrap": "^4.4.1",
     "fibers": "^4.0.2",
+    "interweave": "^12.5.0",
     "jquery": "^3.4.1",
     "leaflet": "^1.6.0",
     "node-sass": "^4.13.0",
