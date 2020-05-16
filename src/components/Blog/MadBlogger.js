@@ -14,7 +14,7 @@ class MadBlogger extends React.Component {
       };  
     }
     //ids associated with blogger.com accounts.
-    bloggerids = ["1446067928327960043","197759443464035384",];
+    bloggerids = ["1446067928327960043","197759443464035384"];
     tempPostList = [];
     
     
