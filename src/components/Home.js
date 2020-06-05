@@ -13,7 +13,7 @@ class Home extends React.Component {
     componentDidMount(){
         axios.get('https://tdh-scripts.herokuapp.com/mad/')
             .then(posts => {
-                console.log(posts);
+                //console.log(posts);
                 this.setState({
                     posts: posts.data
                 });
