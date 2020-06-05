@@ -2,6 +2,7 @@ import React from 'react'
 import { Map, TileLayer, Marker, Popup } from 'react-leaflet';
 
 import { iconCricket } from './map/icons/icons.js';
+import TraveledPaths from './map/TraveledPaths';
 import 'leaflet/dist/leaflet.css';
 
 //Marker will show where the cricket currently is.
@@ -24,7 +25,8 @@ class TravelMap extends React.Component {
           lng: -95.37,
           zoom: 6,
           height: 800,
-          centered: false
+          centered: false,
+          cricketNewPastPath: null
       };  
     }
     
@@ -119,6 +121,39 @@ class TravelMap extends React.Component {
             .catch((e) => console.log("Could not get tracker location. \n"+e));
     }
     
+    fetchPointsOnPath = () =>{
+        //NOT CURRENTLY IN USE
+        //gets the points recorded by by the gps tracker.
+        //This was used to draw a polyline
+        fetch('http://tdh-scripts.herokuapp.com/gps-tracker/?request=listall')
+            .then(response => response.json())
+            .then( (pointsList) => {
+                //create an array from the points array and add it to the state.
+                let points = pointsList.points;
+                let pointsArry = [];
+                points.forEach((pointObj) => {
+                    pointsArry.push([pointObj.lat, pointObj.long]);
+                });
+                //console.log(pointsArry);
+                this.setState({cricketPastPath: pointsArry});
+            })
+            .catch( (e) => console.log("Could not get list of travelled points. \n"+e));
+    }
+    
+    //gets a json file which has a mapquest encoded list of points.
+    fetchTraveledPath = () =>{
+       fetch('https://tdh-scripts.herokuapp.com/gps-tracker/?request=getPathJSON')
+            .then(response => response.json())
+            .then( (travels) => {
+                //create an array from the points array and add it to the state.
+                //TODO this only creates a path for trip[0] which is the RoadTrip2020.
+                //For other trips we'll need another path and color.
+                this.setState({cricketNewPastPath: travels.trips[0].tripLegs});
+                
+            })
+            .catch( (e) => console.log("Failed to get Traveled Path. \n"+e));
+    }
+    
     updateCricketLocation = (newLoc) => {
         this.setState((prevState) => ({
             cricketLoc: {
@@ -132,19 +167,21 @@ class TravelMap extends React.Component {
     }
 
     componentDidMount() {
-        let refreshLocSec = 15; //specifies the seconds between calls to fetch the current cricket location.
+        let refreshLocSec = 30; //specifies the seconds between calls to fetch the current cricket location.
         console.log('Refreshing cricket location every '+refreshLocSec+' seconds');
         this.fetchCurrentLocation();
         this.timer = setInterval(()=>this.fetchCurrentLocation(), refreshLocSec*1000);
         
-        let refreshWeatherSec = 60; //specifies the seconds between calls to fetch the city/weather @ cricket location.
+        let refreshWeatherSec = 600; //specifies the seconds between calls to fetch the city/weather @ cricket location.
         console.log('Refreshing city/weather every '+refreshWeatherSec+' seconds');
         this.fetchLocationfromCoord();
         this.timer_weather = setInterval(()=>this.fetchLocationfromCoord(), refreshWeatherSec*1000);
         
+        this.fetchTraveledPath();
+        
         //check the screen size.
         this.updateDimensions();
-        window.addEventListener("resize", this.updateDimensions.bind(this));
+        window.addEventListener("resize", this.updateDimensions.bind(this));     
     }
     
     componentWillUnmount() {
@@ -176,6 +213,10 @@ class TravelMap extends React.Component {
                             state={cricket.state}
                         /> 
                         : 
+                        null
+                    }
+                    { (this.state.cricketNewPastPath) ? 
+                        <TraveledPaths traveledPath={this.state.cricketNewPastPath}/> :
                         null
                     }
                 </Map>
