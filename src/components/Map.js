@@ -23,7 +23,7 @@ class TravelMap extends React.Component {
           cricketLoc: null,
           lat: 29.7,
           lng: -95.37,
-          zoom: 6,
+          zoom: 4,
           height: 800,
           centered: false,
           cricketNewPastPath: null
@@ -42,6 +42,7 @@ class TravelMap extends React.Component {
             this.setState({
                 lat: this.state.cricketLoc.lat,
                 lng: this.state.cricketLoc.long,
+                zoom: 7,
                 centered: true
             });
         }
