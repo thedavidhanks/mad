@@ -12,7 +12,8 @@ const MadPost = (props) => {
                 <Card.Text><b>-{props.author}</b> on {postedTime.toUTCString()}</Card.Text>
         </Card.Body>
     </Card>
-)};
+    );
+};
 export default MadPost;
 
 

@@ -10,7 +10,8 @@ class MadBlogger extends React.Component {
     constructor(){
       super();
       this.state = {
-          posts: []
+          posts: [],
+          loadingMsg: "Loading..."
       };  
     }
     //ids associated with blogger.com accounts.
@@ -39,6 +40,9 @@ class MadBlogger extends React.Component {
                 });
             }).then( () => {
                 this.setState({posts: this.tempPostList});
+            }).catch( (error) =>{
+                console.log("Error retrieving blog: ", error.message);
+                this.setState({loadingMsg: "Error retrieving blog.  Please contact admin."});
             });
         });
           
@@ -60,7 +64,7 @@ class MadBlogger extends React.Component {
                         </MadPost>);
                 })
             ):(
-                <div>Loading...</div>
+                <div>{this.state.loadingMsg}</div>
             );
         return (
             <Container className="home">
