@@ -1,6 +1,5 @@
 import React from 'react';
 import Container from 'react-bootstrap/Container';
-import axios from 'axios';
 
 import MadPost from './MadPost.js';
 const apikey = process.env.REACT_APP_BLOGGER_API;
@@ -23,7 +22,8 @@ class MadBlogger extends React.Component {
         
         //Get the posts for each account in an array.
         this.bloggerids.forEach(id => {
-            axios.get('https://www.googleapis.com/blogger/v3/blogs/'+id+'/posts?key='+apikey)
+            fetch('https://www.googleapis.com/blogger/v3/blogs/'+id+'/posts?key='+apikey)
+                    .then(resp => resp.json())
             //add posts which are labeled "2020 Roadtrip" to the array
             .then(posts => {
                 posts.data.items.forEach( post => {
